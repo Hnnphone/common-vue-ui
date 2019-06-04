@@ -1,6 +1,23 @@
-.DS_Store
-node_modules
-/dist
+# 前端项目通用忽略配置
+
+# Numerous always-ignore extensions  
+*.bak
+*.patch
+*.diff
+*.err
+
+# temp file for git conflict merging
+*.orig
+*.log
+*.rej
+*.swo
+*.swp
+*.zip
+*.vi
+*~
+*.sass-cache
+*.tmp.html
+*.dump
 
 # local env files
 .env.local
@@ -10,12 +27,34 @@ node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+yarn.lock
+package-lock.json
 
-# Editor directories and files
+# OS or Editor folders  
+.DS_Store
+._*
+.cache
+.project
+.settings
+.tmproj
+*.esproj
+*.sublime-project
+*.sublime-workspace
 .idea
 .vscode
 *.suo
-*.ntvs*
 *.njsproj
 *.sln
 *.sw?
+nbproject
+thumbs.db
+*.iml
+
+# Folders to ignore  
+.hg
+.svn
+.CVS
+node_modules/
+jscoverage_lib/
+bower_components/
+dist/
