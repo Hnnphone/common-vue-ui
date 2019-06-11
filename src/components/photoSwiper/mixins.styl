@@ -1,0 +1,68 @@
+@import "//at.alicdn.com/t/font_1231203_at3l61hykko.css"
+
+/*清除默认样式*/
+html,body
+ol,ul,li,dl,dt,dd
+p
+h1,h2,h3,h4,h5,h6
+  margin: 0
+  padding: 0
+
+button
+  outline: none
+/*自适应*/
+self-adaption(pw = 100%, ph = 100%)
+  width: pw
+  height: ph
+
+/*全屏*/
+full-screen(type, z = 1)
+  position: type
+  top: 0
+  left: 0
+  right: 0
+  bottom: 0
+  z-index: z
+
+/*垂直水平居中*/
+center()
+  position: absolute
+  top: 50%
+  left: 50%
+  margin-left: -(@width / 2)
+  margin-top: -(@height / 2)
+
+@keyframes before {
+  0% {
+    width: 0.5em
+    box-shadow: 1em -0.5em rgba(225, 20, 98, 0.75), -1em 0.5em rgba(111, 202, 220, 0.75)
+  }
+  35% {
+      width: 2.5em
+  box-shadow: 0 -0.5em rgba(225, 20, 98, 0.75), 0 0.5em rgba(111, 202, 220, 0.75)
+  }
+  70% {
+      width: 0.5em
+  box-shadow: -1em -0.5em rgba(225, 20, 98, 0.75), 1em 0.5em rgba(111, 202, 220, 0.75)
+  }
+  100% {
+      box-shadow: 1em -0.5em rgba(225, 20, 98, 0.75), -1em 0.5em rgba(111, 202, 220, 0.75)
+  }
+}
+@keyframes after {
+  0% {
+    height: 0.5em
+    box-shadow: 0.5em 1em rgba(61, 184, 143, 0.75), -0.5em -1em rgba(233, 169, 32, 0.75)
+  }
+  35% {
+    height: 2.5em
+    box-shadow: 0.5em 0 rgba(61, 184, 143, 0.75), -0.5em 0 rgba(233, 169, 32, 0.75)
+  }
+  70% {
+    height: 0.5em
+    box-shadow: 0.5em -1em rgba(61, 184, 143, 0.75), -0.5em 1em rgba(233, 169, 32, 0.75)
+  }
+  100% {
+    box-shadow: 0.5em 1em rgba(61, 184, 143, 0.75), -0.5em -1em rgba(233, 169, 32, 0.75)
+  }
+}
