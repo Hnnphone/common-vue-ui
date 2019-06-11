@@ -66,3 +66,26 @@ center()
     box-shadow: 0.5em 1em rgba(61, 184, 143, 0.75), -0.5em -1em rgba(233, 169, 32, 0.75)
   }
 }
+
+/*公共样式抽取*/
+#Player-Layer:hover
+  #Player-navbar
+    bottom: 0
+
+  #Player-toolbar
+  #Player-indicator
+  #navigation-Prev
+  #navigation-Next
+    opacity: 1
+    visibility: visible
+
+#Player-infobar
+#Player-toolbar
+#Player-indicator
+  position: absolute
+  z-index: 9999
+  direction: ltr
+  opacity: 0
+  cursor: pointer
+  visibility: hidden
+  transition: opacity .25s ease, visibility 0s ease .25s
