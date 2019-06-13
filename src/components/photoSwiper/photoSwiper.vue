@@ -1,27 +1,49 @@
 <template>
     <div id="photoSwiper-container">
-        <div id="photoSwiper-bg"></div>
+        <transition name="toggle">
+            <div id="photoSwiper-bg" v-if="open" @click="_toggleSwiper"></div>
+        </transition>
 
-        <div id="Player">
+        <div id="Player" v-if="open">
             <div id="Player-Layer">
                 <inner/>
                 <navbar/>
             </div>
-            <button id="Player-close" class="iconfont iconsrt-close1"></button>
+            <button id="Player-close" class="iconfont iconsrt-close1" @click="_toggleSwiper"></button>
         </div>
+
+        <progressbar/>
     </div>
 </template>
 
 <script>
+    import config from './config.js'
+
     /*导入组件*/
     import navbar from './navbar/navbar.vue'
     import inner from './inner/inner.vue'
+    import progressbar from './progressbar/progressbar.vue'
 
     export default {
-        name: "photoSwiper",
+        data() {
+            return {
+                open: false,
+                slides: config.slides,
+                currentIndex: 0,
+                options: {},
+            }
+        },
         components: {
             navbar,
             inner,
+            progressbar,
+        },
+        methods: {
+            _init() {
+            },
+            _toggleSwiper() {
+                this.open = !this.open;
+            },
         }
     }
 
@@ -31,15 +53,24 @@
     @import "mixins.styl"
 
     #photoSwiper-container
-        full-screen(fixed, 9999)
-        touch-action: manipulation;
+        position: fixed
+        top: 0
+        left: 0
+        z-index: 99999
 
         #photoSwiper-bg
-            full-screen(absolute, 1001)
-            background-color: rgba(7, 17, 26, 0.4)
+            full-screen(fixed, 1001)
+            background-color: #1E1E1E
+            opacity: .8
+
+            &.toggle-enter-active, &.toggle-leave-active
+                transition: opacity .4s cubic-bezier(.22, .61, .36, 1)
+
+            &.toggle-enter, &.toggle-leave-to
+                opacity: 0
 
         #Player
-            full-screen(absolute, 2001)
+            full-screen(fixed, 2001)
             width: 87.5%
             height: 83%
             background-color: #000

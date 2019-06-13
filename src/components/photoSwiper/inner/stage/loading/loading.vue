@@ -1,15 +1,15 @@
 <template>
-    <div id="Stage-progress"></div>
+    <div id="Stage-loading"></div>
 </template>
 
 <script>
     export default {
-        name: "progress"
+        name: "loading"
     }
 </script>
 
 <style lang="stylus" scoped>
-    #Stage-progress
+    #Stage-loading
         display: none
         line-height: 1.15
         z-index: 9999

@@ -20,6 +20,7 @@
             z-index: 9999
             width: 90px
             height: 90px
+            line-height: 90px
             position: absolute
             top: 50%
             margin-top: -45px;
