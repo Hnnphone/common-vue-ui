@@ -1,24 +1,22 @@
 <template>
-    <div id="photoSwiper-container">
-        <transition name="toggle">
-            <div id="photoSwiper-bg" v-if="open" @click="_toggleSwiper"></div>
-        </transition>
+    <transition name="toggle">
+        <div id="photoSwiper-container" v-if="isOpen">
+            <div id="photoSwiper-bg" @click="_close"></div>
 
-        <div id="Player" v-if="open">
-            <div id="Player-Layer">
-                <inner />
-                <navbar/>
+            <div ref="player" id="Player">
+                <div id="Player-Layer">
+                    <inner />
+                    <navbar/>
+                </div>
+                <button id="Player-close" class="iconfont iconsrt-close1" @click="_close"></button>
             </div>
-            <button id="Player-close" class="iconfont iconsrt-close1" @click="_toggleSwiper"></button>
-        </div>
 
-        <progressbar/>
-    </div>
+            <progressbar/>
+        </div>
+    </transition>
 </template>
 
 <script>
-    import config from './config.js'
-
     /*导入组件*/
     import navbar from './navbar/navbar.vue'
     import inner from './inner/inner.vue'
@@ -27,12 +25,15 @@
     export default {
         data() {
             return {
-                open: false, // 状态开关
-                slides: config.slides, // 图片相关的链接
+                isOpen: false, // 状态开关
+
+                slides: [], // 图片相关的链接
                 currentIndex: 0, // 当前索引
+
+                option: {}, // 选项
+                userInfo: {}, // 个人信息
+
                 target: {}, // 事件源元素
-                options: config.options, // 选项
-                userInfo: config.userInfo
             }
         },
         components: {
@@ -41,9 +42,52 @@
             progressbar,
         },
         methods: {
-            _toggleSwiper() {
-                this.open = !this.open;
+            _initPW() {
+                window.onresize = () => {
+                    if(this.isOpen) {
+                        this._adjustPosition();
+                    }
+                }
             },
+            _adjustPosition() {
+                const _player = this.$refs.player;
+                const _vh = document.documentElement.clientHeight;
+                const _ch = _player.clientHeight;
+                const _requiredH = _ch + 60;
+                if (_requiredH < _vh) {
+                    _player.style.top = _vh / 2 - _ch / 2 + 'px';
+                } else {
+                    _player.style.top = 35 + 'px';
+                }
+            },
+            _open(content, opts, index, userInfo) {
+                if(!this.isOpen) {
+                    this.isOpen = true;
+                }
+
+                this.slides = content;
+                this.currentIndex = index;
+                this.option = opts;
+                this.userInfo = userInfo;
+
+                this._initPW();
+            },
+            _close() {
+                if(this.isOpen) {
+                    this.isOpen = false;
+                }
+            },
+
+
+        },
+        watch: {
+            isOpen(newVal) {
+                this.$nextTick(() => {
+                    if (newVal) {
+                        this._adjustPosition();
+                    }
+                })
+            }
         }
     }
 
@@ -53,24 +97,16 @@
     @import "mixins.styl"
 
     #photoSwiper-container
-        position: fixed
-        top: 0
-        left: 0
-        z-index: 99999
+        full-screen(fixed, 99999)
+        transition: opacity .4s
 
         #photoSwiper-bg
-            full-screen(fixed, 1001)
+            full-screen(absolute, 1001)
             background-color: #1E1E1E
             opacity: .8
 
-            &.toggle-enter-active, &.toggle-leave-active
-                transition: opacity .4s cubic-bezier(.22, .61, .36, 1)
-
-            &.toggle-enter, &.toggle-leave-to
-                opacity: 0
-
         #Player
-            full-screen(fixed, 2001)
+            full-screen(absolute, 2001)
             width: 87.5%
             height: 83%
             background-color: #000
@@ -78,7 +114,7 @@
             max-width: 1314px
             min-height: 400px
             max-height: 710px
-            margin: auto
+            margin: 0 auto
 
             #Player-Layer
                 position: relative
@@ -100,4 +136,19 @@
                 cursor: pointer
                 background-color: #313131
 
+        &.toggle-enter-active
+            #photoSwiper-bg
+                transition: opacity .4s cubic-bezier(0.47, 0, 0.74, .71)
+            #Player
+                transition: transform  .4s cubic-bezier(0.175, 0.885, 0.32, 1.275)
+        &.toggle-leave-active
+            #photoSwiper-bg
+                transition: opacity .4s cubic-bezier(0.22, 0.61, 0.36, 1)
+            #Player
+                transition: transform  .4s cubic-bezier(0.6, -0.28, 0.735, 0.045)
+        &.toggle-enter, &.toggle-leave-to
+            #photoSwiper-bg
+                opacity: 0
+            #Player
+                transform: scale(0)
 </style>
