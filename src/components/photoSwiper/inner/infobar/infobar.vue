@@ -1,12 +1,15 @@
 <template>
     <div id="Player-infobar">
-        <span id="avatar" style="background: url(https://source.unsplash.com/IvfoDk30JnI/20x20)"></span>
-        <span id="userName">韩先生</span>
+        <span id="avatar" :style="{ 'background-image': `url(${userInfo.avatar})` }"></span>
+        <span id="userName">{{userInfo.name}}</span>
     </div>
 </template>
 
 <script>
     export default {
+        props: {
+            userInfo: Object,
+        }
     }
 </script>
 

@@ -1,11 +1,15 @@
 <template>
     <div id="Player-indicator">
-        <span>2</span>/<span>35</span>
+        <span>{{currentIndex}}</span>/<span>{{count}}</span>
     </div>
 </template>
 
 <script>
     export default {
+        props: {
+            currentIndex: Number,
+            count: Number,
+        }
     }
 </script>
 

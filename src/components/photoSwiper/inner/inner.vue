@@ -1,11 +1,12 @@
 <template>
     <div id="Player-inner">
-        <caption />
-        <indicator />
-        <infobar />
-        <navigation />
-        <stage />
-        <toolbar />
+        <infobar :userInfo="userInfo"/>
+        <toolbar/>
+        <navigation/>
+        <indicator :currentIndex="currentIndex" :count="slides.length"/>
+
+        <stage/>
+        <caption/>
     </div>
 </template>
 
@@ -19,6 +20,12 @@
     import toolbar from './toolbar/toolbar.vue'
 
     export default {
+        props: {
+            slides: Array,
+            currentIndex: Number,
+            opts: Object,
+            userInfo: Object,
+        },
         components: {
             caption,
             indicator,

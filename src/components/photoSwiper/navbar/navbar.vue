@@ -27,6 +27,11 @@
 
 <script>
     export default {
+        props: {
+            slides: Array,
+            currentIndex: Number,
+            opts: Object,
+        }
     }
 </script>
 

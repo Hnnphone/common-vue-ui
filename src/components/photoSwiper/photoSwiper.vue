@@ -5,8 +5,8 @@
 
             <div ref="player" id="Player">
                 <div id="Player-Layer">
-                    <inner />
-                    <navbar/>
+                    <inner  :slides="slides" :currentIndex="currentIndex" :opts="option" :userinfo="userInfo"/>
+                    <navbar :slides="slides" :currentIndex="currentIndex" :opts="option.thumbs" />
                 </div>
                 <button id="Player-close" class="iconfont iconsrt-close1" @click="_close"></button>
             </div>
@@ -77,7 +77,6 @@
                     this.isOpen = false;
                 }
             },
-
 
         },
         watch: {
