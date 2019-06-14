@@ -2,7 +2,7 @@
     <div id="Player-stage">
         <ul class="Stage-List">
             <li class="Stage-content Stage-content-current">
-                <img src="https://source.unsplash.com/IvfoDk30JnI/1700x1000" alt="">
+                <img src="https://source.unsplash.com/IvfoDk30JnI/1500x1000" alt="">
             </li>
             <li class="Stage-content">
                 <img src="https://source.unsplash.com/juHayWuaaoQ/1500x1000" alt="">

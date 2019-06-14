@@ -6,7 +6,7 @@
 
         <div id="Player" v-if="open">
             <div id="Player-Layer">
-                <inner/>
+                <inner />
                 <navbar/>
             </div>
             <button id="Player-close" class="iconfont iconsrt-close1" @click="_toggleSwiper"></button>
@@ -27,10 +27,12 @@
     export default {
         data() {
             return {
-                open: false,
-                slides: config.slides,
-                currentIndex: 0,
-                options: {},
+                open: false, // 状态开关
+                slides: config.slides, // 图片相关的链接
+                currentIndex: 0, // 当前索引
+                target: {}, // 事件源元素
+                options: config.options, // 选项
+                userInfo: config.userInfo
             }
         },
         components: {
@@ -39,8 +41,6 @@
             progressbar,
         },
         methods: {
-            _init() {
-            },
             _toggleSwiper() {
                 this.open = !this.open;
             },

@@ -8,14 +8,37 @@ export default {
             }
          */
         {
-
+            src: 'https://source.unsplash.com/juHayWuaaoQ/1500x1000',
+            thumbnail: 'https://source.unsplash.com/juHayWuaaoQ/240x160'
         },
         {
-
+            src: 'https://source.unsplash.com/eWFdaPRFjwE/1500x1000',
+            thumbnail: 'https://source.unsplash.com/eWFdaPRFjwE/240x160'
         },
-        {},
-        {},
-        {}
+        {
+            src: 'https://source.unsplash.com/i2KibvLYjqk/1500x1000',
+            thumbnail: 'https://source.unsplash.com/i2KibvLYjqk/240x160'
+        },
+        {
+            src: 'https://source.unsplash.com/RFgO9B_OR4g/1500x1000',
+            thumbnail: 'https://source.unsplash.com/RFgO9B_OR4g/240x160'
+        },
+        {
+            src: 'https://source.unsplash.com/7bwQXzbF6KE/1500x1000',
+            thumbnail: 'https://source.unsplash.com/7bwQXzbF6KE/240x160'
+        },
+        {
+            src: 'https://source.unsplash.com/NhU0nUR7920/1500x1000',
+            thumbnail: 'https://source.unsplash.com/NhU0nUR7920/240x160'
+        },
+        {
+            src: 'https://source.unsplash.com/ndjyaOp0fOc/1500x1000',
+            thumbnail: 'https://source.unsplash.com/ndjyaOp0fOc/240x160'
+        },
+        {
+            src: 'https://source.unsplash.com/A-fubu9QJxE/1500x1000',
+            thumbnail: 'https://source.unsplash.com/A-fubu9QJxE/240x160'
+        },
     ],
     options: {
         loop: false, // 是否启用无限轮播
@@ -77,4 +100,9 @@ export default {
     },
 
     index: 0, // 索引
+
+    userInfo: {
+        avatar: "https://source.unsplash.com/IvfoDk30JnI/20x20",
+        name: "韩先生"
+    }
 }

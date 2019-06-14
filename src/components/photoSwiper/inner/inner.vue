@@ -19,7 +19,6 @@
     import toolbar from './toolbar/toolbar.vue'
 
     export default {
-        name: "inner",
         components: {
             caption,
             indicator,
