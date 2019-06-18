@@ -1,6 +1,6 @@
 <template>
     <div id="Player-indicator">
-        <span>{{currentIndex}}</span>/<span>{{count}}</span>
+        <span>{{currentIndex+1}}</span>/<span>{{count}}</span>
     </div>
 </template>
 

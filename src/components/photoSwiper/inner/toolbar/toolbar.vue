@@ -2,7 +2,7 @@
     <div id="Player-toolbar">
         <button id="toolbar-zoomIn" class="iconfont iconsrt-enlarge1"></button>
         <button id="toolbar-zoomOut" class="iconfont iconsrt-narrow1"></button>
-        <button id="toolbar-rotate-acw" class="iconfont iconsrt-anti-clockwise1"></button>
+        <button id="toolbar-rotate-ccw" class="iconfont iconsrt-anti-clockwise1"></button>
         <button id="toolbar-rotate-cw" class="iconfont iconsrt-clockwise1"></button>
         <button id="toolbar-play" style="display: none"></button>
     </div>
@@ -31,4 +31,6 @@
             margin-left: 6px
             cursor: pointer
 
+            &:hover
+                background-color: rgba(85,85,85,1)
 </style>

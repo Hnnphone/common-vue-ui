@@ -5,8 +5,8 @@
 
             <div ref="player" id="Player">
                 <div id="Player-Layer">
-                    <inner  :slides="slides" :currentIndex="currentIndex" :opts="option" :userinfo="userInfo"/>
-                    <navbar :slides="slides" :currentIndex="currentIndex" :opts="option.thumbs" />
+                    <inner  :slides="slides" :currentIndex="currentIndex" :opts="option" :userInfo="userInfo" ref="inner" @jumpTo="_jumpTo"/>
+                    <navbar ref="navbar" :slides="slides" :currentIndex="currentIndex" :opts="option.thumbs" @jumpTo="_jumpTo"/>
                 </div>
                 <button id="Player-close" class="iconfont iconsrt-close1" @click="_close"></button>
             </div>
@@ -33,7 +33,9 @@
                 option: {}, // 选项
                 userInfo: {}, // 个人信息
 
-                target: {}, // 事件源元素
+                pageNum: 0,
+                pageCount: 0,
+                currentPage: 0,
             }
         },
         components: {
@@ -42,35 +44,15 @@
             progressbar,
         },
         methods: {
-            _initPW() {
-                window.onresize = () => {
-                    if(this.isOpen) {
-                        this._adjustPosition();
-                    }
-                }
-            },
-            _adjustPosition() {
-                const _player = this.$refs.player;
-                const _vh = document.documentElement.clientHeight;
-                const _ch = _player.clientHeight;
-                const _requiredH = _ch + 60;
-                if (_requiredH < _vh) {
-                    _player.style.top = _vh / 2 - _ch / 2 + 'px';
-                } else {
-                    _player.style.top = 35 + 'px';
-                }
-            },
             _open(content, opts, index, userInfo) {
-                if(!this.isOpen) {
+                if (!this.isOpen) {
                     this.isOpen = true;
+
+                    this.slides = content;
+                    this.currentIndex = index;
+                    this.option = opts;
+                    this.userInfo = userInfo;
                 }
-
-                this.slides = content;
-                this.currentIndex = index;
-                this.option = opts;
-                this.userInfo = userInfo;
-
-                this._initPW();
             },
             _close() {
                 if(this.isOpen) {
@@ -78,12 +60,42 @@
                 }
             },
 
+            // 切换
+            _jumpTo(position) {
+                this.currentIndex = position;
+            },
+
+            // 布局调整
+            _adjustLayout() {
+                const _player = this.$refs.player;
+                const _vh = document.documentElement.clientHeight;
+                const _ch = _player.clientHeight;
+                const _requiredH = _ch + 70;
+                if (_requiredH < _vh) {
+                    _player.style.top = _vh / 2 - _ch / 2 + 'px';
+                } else {
+                    _player.style.top = 35 + 'px';
+                }
+            },
+            _setResizeListener() {
+                window.onresize = () => {
+                    if (this.isOpen) {
+                        this._adjustLayout();
+                        this.$refs.navbar._adjustLayout();
+                    }
+                }
+            },
         },
         watch: {
             isOpen(newVal) {
                 this.$nextTick(() => {
                     if (newVal) {
-                        this._adjustPosition();
+                        this._adjustLayout();
+                        this._setResizeListener();
+
+                        this.$refs.navbar._adjustLayout();
+
+                        this.$refs.inner._initialize();
                     }
                 })
             }
@@ -124,13 +136,13 @@
             #Player-close
                 position: absolute
                 z-index: 2999
-                width: 60px
-                height: 60px
+                width: 50px
+                height: 50px
                 border: 0
-                top: -30px
-                right: -30px
+                top: -25px
+                right: -25px
                 border-radius: 50%
-                font-size: 40px
+                font-size: 36px
                 color: #FFF
                 cursor: pointer
                 background-color: #313131
