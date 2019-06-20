@@ -1,64 +1,95 @@
 <template>
-    <div id="Player-stage">
-        <ul class="Stage-List">
-            <li class="Stage-content Stage-content-current">
-                <img src="https://source.unsplash.com/IvfoDk30JnI/1500x1000" alt="">
-                <loading/>
-            </li>
-            <li class="Stage-content">
-                <img src="https://source.unsplash.com/juHayWuaaoQ/1500x1000" alt="">
-                <loading/>
-            </li>
-            <li class="Stage-content">
-                <img src="https://source.unsplash.com/eWFdaPRFjwE//1500x1000" alt="">
-                <loading/>
-            </li>
-        </ul>
-    </div>
+    <div id="Player-stage" ref="playerStage"></div>
 </template>
 
 <script>
-    import loading from './loading/loading.vue'
+    import stage from './stageTool.js'
 
     export default {
         props: {
-            slides: Array,
+            slides: Array, // 元数据
             currentIndex: Number,
+
+            /*
+             * options {
+             *   loop,
+             *   preload,
+             *   transitionEffect,
+             *   transitionDuration,
+             *   hash,
+             * }
+             */
             options: Object,
         },
-        components: {
-            loading
-        },
         methods: {
-            _initStage() {
-
-            },
+            init() {
+                stage._init(this.currentIndex, this.$refs.playerStage, this.slides, this.options);
+            }
         },
+        watch: {
+            currentIndex(newValue) {
+                stage._swipe(newValue);
+            }
+        }
     }
 </script>
 
-<style lang="stylus" scoped>
+<style lang="stylus">
     @import "../../mixins.styl"
 
     #Player-stage
         full-screen(absolute)
 
-        .Stage-content
-            full-screen(absolute)
-            display: none
+    .stage-slide
+        display: none
+        full-screen(absolute)
+
+        .slide-content
+            position: absolute
+            top: 0
+            left: 0
+            right: 0
+            bottom: 0
+            user-select: none
 
             img
-                max-height: 100%
-                max-width: 100%
-                outline: none
-                border: 0
                 position: absolute
                 top: 50%
                 left: 50%
                 transform: translate(-50%, -50%)
+                max-width: 100%
+                max-height: 100%
+                padding: 0
+                border: 0
                 user-select: none
 
-            &.Stage-content-current
-                display: block
+        .loading
+            display: none
+            opacity: 0
+            transition: opacity 5s cubic-bezier(0.47, 0, 0.74, .71)
+            width: 2.5em
+            height: 2.5em
+            line-height: 1.15
+            center()
+            transform: rotate(165deg)
 
+            &:before
+            &:after
+                content: ''
+                position: absolute;
+                top: 50%
+                left: 50%
+                width: 0.5em
+                height: 0.5em
+                border-radius: 0.25em
+                transform: translate(-50%, -50%)
+
+            &:before
+                animation: before 2s infinite;
+
+            &:after
+                animation: after 2s infinite;
+
+        &.stage-slide--current
+            display: block
 </style>

@@ -136,7 +136,6 @@ export default {
         },
     ],
     options: {
-        loop: false, // 是否启用无限轮播
         keyboard: true, // 是否启用键盘导航
         wheel: true, // 是否启用滚轮导航
 
@@ -159,12 +158,8 @@ export default {
             hasIndicator: true,
         },
         stage: {
-            /**
-             * 是否启用预加载
-             *  true -
-             *  false -
-             */
-            preload: true,
+            loop: false, // 是否启用无限轮播
+            preload: true, // 是否启用预加载
 
             /**
              * slides 切换时的过渡效果 及持续时间

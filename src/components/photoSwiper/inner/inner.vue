@@ -11,7 +11,7 @@
             @next="_next"/>
         <indicator  :currentIndex="currentIndex" :count="slides.length"/>
 
-        <stage :slides="slides" :options="opts" :currentIndex="currentIndex"/>
+        <stage :slides="slides" :currentIndex="currentIndex" :options="opts.stage" ref="stage" />
         <stage-caption/>
     </div>
 </template>
@@ -47,7 +47,9 @@
             stageCaption,
         },
         methods: {
-            _initialize() {},
+            _initialize() {
+                this.$refs.stage.init();
+            },
 
             // 上一张
             _previous() {
