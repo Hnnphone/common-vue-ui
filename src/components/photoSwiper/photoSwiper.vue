@@ -1,11 +1,11 @@
 <template>
-    <transition name="toggle">
+    <transition name="toggle" @after-enter="afterToggle">
         <div id="photoSwiper-container" v-if="isOpen">
             <div id="photoSwiper-bg" @click="_close"></div>
 
             <div ref="player" id="Player">
                 <div id="Player-Layer">
-                    <inner  :slides="slides" :currentIndex="currentIndex" :opts="option" :userInfo="userInfo" ref="inner" @jumpTo="_jumpTo"/>
+                    <inner  :slides="slides" :currentIndex="currentIndex" :opts="option" :userInfo="userInfo" ref="inner" @jumpTo="_jumpTo" :_close="_close"/>
                     <navbar ref="navbar" :slides="slides" :currentIndex="currentIndex" :opts="option.thumbs" @jumpTo="_jumpTo"/>
                 </div>
                 <button id="Player-close" class="iconfont iconsrt-close1" @click="_close"></button>
@@ -62,7 +62,19 @@
 
             // 切换
             _jumpTo(position) {
-                this.currentIndex = position;
+                let index, len = this.slides.length;
+                if (this.option.stage.loop) {
+                    index = position % len;
+                    index = index < 0 ? len + index : index;
+                } else {
+                    index = position;
+                }
+
+                if(index < 0 || index > len - 1) {
+                    return;
+                }
+
+                this.currentIndex = index;
             },
 
             // 布局调整
@@ -78,12 +90,16 @@
                 }
             },
             _setResizeListener() {
-                window.onresize = () => {
+                window.addEventListener("resize", () => {
                     if (this.isOpen) {
                         this._adjustLayout();
                         this.$refs.navbar._adjustLayout();
                     }
-                }
+                });
+            },
+
+            afterToggle() {
+                this.$refs.inner.init();
             },
         },
         watch: {
@@ -95,7 +111,7 @@
 
                         this.$refs.navbar._adjustLayout();
 
-                        this.$refs.inner._initialize();
+                        //this.$refs.inner._initialize();
                     }
                 })
             }

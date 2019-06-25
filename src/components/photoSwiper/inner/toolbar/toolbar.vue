@@ -1,15 +1,30 @@
 <template>
     <div id="Player-toolbar">
-        <button id="toolbar-zoomIn" class="iconfont iconsrt-enlarge1"></button>
-        <button id="toolbar-zoomOut" class="iconfont iconsrt-narrow1"></button>
-        <button id="toolbar-rotate-ccw" class="iconfont iconsrt-anti-clockwise1"></button>
-        <button id="toolbar-rotate-cw" class="iconfont iconsrt-clockwise1"></button>
+        <button id="toolbar-zoomIn" class="iconfont iconsrt-enlarge1" @click="zoomIn"></button>
+        <button id="toolbar-zoomOut" class="iconfont iconsrt-narrow1" @click="zoomOut"></button>
+        <button id="toolbar-rotate-ccw" class="iconfont iconsrt-anti-clockwise1" @click="rotateCCW"></button>
+        <button id="toolbar-rotate-cw" class="iconfont iconsrt-clockwise1" @click="rotateCW"></button>
         <button id="toolbar-play" style="display: none"></button>
     </div>
 </template>
 
 <script>
     export default {
+        methods: {
+            zoomIn() {
+                this.$emit('zoomIn');
+            },
+            zoomOut() {
+                this.$emit('zoomOut');
+            },
+
+            rotateCCW() {
+                this.$emit('rotateCCW');
+            },
+            rotateCW() {
+                this.$emit('rotateCW');
+            },
+        }
     }
 </script>
 

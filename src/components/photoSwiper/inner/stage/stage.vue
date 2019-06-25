@@ -23,12 +23,20 @@
         },
         methods: {
             init() {
-                stage._init(this.currentIndex, this.$refs.playerStage, this.slides, this.options);
-            }
+                stage.init(this, this.currentIndex, this.$refs.playerStage, this.slides, this.options);
+            },
+
+            // _scale(ratio) {
+            //     stage.onScale(ratio);
+            // },
+            //
+            // _rotate(degress) {
+            //     stage.onRotate(degress);
+            // }
         },
         watch: {
             currentIndex(newValue) {
-                stage._swipe(newValue);
+                stage.swipe(newValue);
             }
         }
     }
@@ -45,22 +53,27 @@
         full-screen(absolute)
 
         .slide-content
-            position: absolute
-            top: 0
-            left: 0
-            right: 0
-            bottom: 0
+            display: inline-block;
+            text-align: center;
             user-select: none
+
+            &.slide-is-hidden
+                position: absolute !important;
+                visibility: hidden;
 
             img
                 position: absolute
-                top: 50%
-                left: 50%
-                transform: translate(-50%, -50%)
-                max-width: 100%
-                max-height: 100%
+                width: 100%
+                height: 100%
+                max-height: none
+                max-width: none
+                background: transparent
                 padding: 0
                 border: 0
+                margin: 0
+                left: 0
+                top: 0
+                vertical-align: middle
                 user-select: none
 
         .loading
@@ -92,4 +105,12 @@
 
         &.stage-slide--current
             display: block
+
+        &.slide-is--scaling
+            .slide-content
+                transition transform 366ms
+
+        &.slide-is--rotating
+            .slide-content
+                transition transform 366ms
 </style>

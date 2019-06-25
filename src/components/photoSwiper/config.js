@@ -136,9 +136,6 @@ export default {
         },
     ],
     options: {
-        keyboard: true, // 是否启用键盘导航
-        wheel: true, // 是否启用滚轮导航
-
         autoStart: false, // 是否自动播放
         speed: 3000, // 自动播放间隔
 
@@ -180,6 +177,9 @@ export default {
              *  - 设置为 false 时不启用
              */
             hash: null,
+
+            keyboard: true, // 是否启用键盘导航
+            wheel: true, // 是否启用滚轮导航
         },
 
         thumbs: {

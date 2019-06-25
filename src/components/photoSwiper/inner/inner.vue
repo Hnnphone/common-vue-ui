@@ -4,8 +4,8 @@
         <toolbar
             @zoomIn="_zoomIn"
             @zoomOut="_zoomOut"
-            @_rotateCCW="_rotateCCW"
-            @_rotateCW="_rotateCW"/>
+            @rotateCCW="_rotateCCW"
+            @rotateCW="_rotateCW"/>
         <navigation :currentIndex="currentIndex" :count="slides.length" :loop="opts.loop"
             @previous="_previous"
             @next="_next"/>
@@ -26,17 +26,13 @@
     import stageCaption from './caption/caption.vue'
 
     export default {
-        data() {
-            return {
-                scaleMultiple: 1,
-                rotateDegree: 0,
-            }
-        },
         props: {
             slides: Array,
             currentIndex: Number,
             opts: Object,
             userInfo: Object,
+
+            _close: Function,
         },
         components: {
             infobar,
@@ -47,7 +43,14 @@
             stageCaption,
         },
         methods: {
-            _initialize() {
+            init() {
+                this.ratios = [0.25, 0.33, 0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5];
+                this.ratiosIndex = 7;
+                //this.degrees = [0, 90, 180, 270];
+                //this.degreesIndex = 0;
+
+                this.angle = false;
+
                 this.$refs.stage.init();
             },
 
@@ -61,17 +64,55 @@
                 this.$emit("jumpTo", this.currentIndex + 1);
             },
 
-            // TODO 放大
-            _zoomIn() {},
+            // 放大
+            _zoomIn() {
+                // 处理倍数
+                let {ratiosIndex, ratios} = this;
 
-            // TODO 缩小
-            _zoomOut() {},
+                if (ratiosIndex < ratios.length - 1) {
+                    this.$refs.stage._scale(ratios[++ratiosIndex]);
+                    this.ratiosIndex++;
+                }
+            },
 
-            // TODO 逆时针旋转
-            _rotateCCW() {},
+            // 缩小
+            _zoomOut() {
+                // 处理倍数
+                let {ratiosIndex, ratios} = this;
 
-            // TODO 顺时针旋转
-            _rotateCW() {},
+                if (ratiosIndex > 0) {
+                    this.$refs.stage._scale(ratios[--ratiosIndex]);
+                    this.ratiosIndex--;
+                }
+            },
+
+            // 逆时针旋转
+            _rotateCCW() {
+                // 处理度数
+                // this.degreesIndex--;
+                //
+                // let {degreesIndex, degrees} = this;
+                // degreesIndex = degreesIndex % degrees.length;
+                // degreesIndex = degreesIndex < 0 ? degrees.length + degreesIndex : degreesIndex;
+                //
+                // this.$refs.stage._rotate(degrees[degreesIndex]);
+                this.angle -= 90;
+                this.$refs.stage._rotate(this.angle);
+            },
+
+            // 顺时针旋转
+            _rotateCW() {
+                // 处理度数
+                // this.degreesIndex++;
+                //
+                // let {degreesIndex, degrees} = this;
+                // degreesIndex = degreesIndex % degrees.length;
+                // degreesIndex = degreesIndex < 0 ? degrees.length + degreesIndex : degreesIndex;
+                //
+                // this.$refs.stage._rotate(degrees[degreesIndex]);
+                this.angle += 90;
+                this.$refs.stage._rotate(this.angle);
+            },
 
             // TODO 重置
             _reset() {},
