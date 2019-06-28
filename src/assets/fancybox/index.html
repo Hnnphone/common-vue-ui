@@ -70,7 +70,7 @@
 
         $.fancybox.open([
             {
-                src: 'https://source.unsplash.com/juHayWuaaoQ/1500x1000',
+                src: 'https://source.unsplash.com/juHayWuaaoQ/2500x1000',
                 type: 'image',
                 opts: {
                     caption: '标题一',
@@ -78,7 +78,7 @@
                 }
             },
             {
-                src: 'https://source.unsplash.com/eWFdaPRFjwE/1500x1000',
+                src: 'https://source.unsplash.com/eWFdaPRFjwE/2500x1000',
                 type: 'image',
                 opts: {
                     caption: '标题二',
@@ -86,7 +86,7 @@
                 }
             },
             {
-                src: 'https://source.unsplash.com/i2KibvLYjqk/1500x1000',
+                src: 'https://source.unsplash.com/i2KibvLYjqk/2500x1000',
                 type: 'image',
                 opts: {
                     caption: '标题三',
@@ -94,7 +94,7 @@
                 }
             },
             {
-                src: 'https://source.unsplash.com/RFgO9B_OR4g/1500x1000',
+                src: 'https://source.unsplash.com/RFgO9B_OR4g/2500x1000',
                 type: 'image',
                 opts: {
                     caption: '标题四',
@@ -102,7 +102,7 @@
                 }
             },
             {
-                src: 'https://source.unsplash.com/juHayWuaaoQ/1500x1000',
+                src: 'https://source.unsplash.com/juHayWuaaoQ/2500x1000',
                 type: 'image',
                 opts: {
                     caption: '标题一',
@@ -136,29 +136,13 @@
         ], {
             loop: true,
             hash: "image",
-            transitionEffect: "fade",
-            transitionDuration: 366,
+            //transitionEffect: "circular",
+            transitionDuration: 336,
             image: {
                 preload: true
             },
         }, 2);
     });
-
-    $('[data-fancybox="images"]').fancybox({
-        loop: true,
-        image: {
-            preload: true
-        },
-        thumbs: {
-            autoStart: true,
-            axis: 'x'
-        },
-        animationEffect: "zoom",
-        transitionEffect: "fade",
-        touch: {
-            vertical: false,
-        },
-    })
 </script>
 </body>
 </html>

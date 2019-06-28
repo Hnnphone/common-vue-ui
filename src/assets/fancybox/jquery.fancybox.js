@@ -1320,7 +1320,7 @@
                     scaleX: scaleX,
                     scaleY: scaleY
                 },
-                duration || 366,
+                duration || 336,
                 function () {
                     self.isAnimating = false;
                 }

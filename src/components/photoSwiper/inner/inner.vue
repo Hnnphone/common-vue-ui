@@ -44,13 +44,6 @@
         },
         methods: {
             init() {
-                this.ratios = [0.25, 0.33, 0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5];
-                this.ratiosIndex = 7;
-                //this.degrees = [0, 90, 180, 270];
-                //this.degreesIndex = 0;
-
-                this.angle = false;
-
                 this.$refs.stage.init();
             },
 
@@ -66,57 +59,25 @@
 
             // 放大
             _zoomIn() {
-                // 处理倍数
-                let {ratiosIndex, ratios} = this;
-
-                if (ratiosIndex < ratios.length - 1) {
-                    this.$refs.stage._scale(ratios[++ratiosIndex]);
-                    this.ratiosIndex++;
-                }
+                this.$refs.stage.scaleTo("IN");
             },
 
             // 缩小
             _zoomOut() {
-                // 处理倍数
-                let {ratiosIndex, ratios} = this;
-
-                if (ratiosIndex > 0) {
-                    this.$refs.stage._scale(ratios[--ratiosIndex]);
-                    this.ratiosIndex--;
-                }
-            },
-
-            // 逆时针旋转
-            _rotateCCW() {
-                // 处理度数
-                // this.degreesIndex--;
-                //
-                // let {degreesIndex, degrees} = this;
-                // degreesIndex = degreesIndex % degrees.length;
-                // degreesIndex = degreesIndex < 0 ? degrees.length + degreesIndex : degreesIndex;
-                //
-                // this.$refs.stage._rotate(degrees[degreesIndex]);
-                this.angle -= 90;
-                this.$refs.stage._rotate(this.angle);
+                this.$refs.stage.scaleTo("OUT");
             },
 
             // 顺时针旋转
             _rotateCW() {
-                // 处理度数
-                // this.degreesIndex++;
-                //
-                // let {degreesIndex, degrees} = this;
-                // degreesIndex = degreesIndex % degrees.length;
-                // degreesIndex = degreesIndex < 0 ? degrees.length + degreesIndex : degreesIndex;
-                //
-                // this.$refs.stage._rotate(degrees[degreesIndex]);
-                this.angle += 90;
-                this.$refs.stage._rotate(this.angle);
+                this.$refs.stage.whirlTo("CW");
             },
 
-            // TODO 重置
-            _reset() {},
-        }
+            // 逆时针旋转
+            _rotateCCW() {
+                this.$refs.stage.whirlTo("CCW");
+            },
+
+        },
     }
 </script>
 

@@ -180,6 +180,11 @@ export default {
 
             keyboard: true, // 是否启用键盘导航
             wheel: true, // 是否启用滚轮导航
+
+            touch: {
+                vertical: true, // 允许垂直拖动内容
+                momentum: true // 在拖动时释放鼠标或手指将继续移动
+            }
         },
 
         thumbs: {

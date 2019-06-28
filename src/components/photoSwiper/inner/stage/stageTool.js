@@ -1,7 +1,10 @@
+import {_parseHtml, _extend, _isPlainObject, _isEmptyObject, _isFunction, _isNumeric} from "./tools.js"
+import { Guestures } from "./guestures.js"
+
 const stage = {
     data: {},
 
-    // 初始化
+    // 初始化 dom、opts
     init(vm, currIndex, root, group, opts) {
         var self = this.data = {};
 
@@ -10,26 +13,32 @@ const stage = {
         self.group = group;
         self.opts = opts;
         self.slides = {};
+        self.ratios = [0.25, 0.33, 0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5]; // 缩放比
 
         this.addEvents(self);
         this.swipe(currIndex);
     },
 
-    addEvents(instance) {
-        let prevTime = new Date().getTime(),
-            keyboard = instance.opts && instance.opts.keyboard,
-            wheel = instance.opts && instance.opts.wheel;
+    // 添加事件
+    addEvents(data) {
+        let $root = data.root,
+            prevTime = new Date().getTime(),
+            keyboard = data.opts && data.opts.keyboard,
+            wheel = data.opts && data.opts.wheel;
 
         window.addEventListener("resize", () => {
             // modified All Slide...
-            Object.keys(instance.slides).forEach((index) => {
-                const slide = instance.slides[index];
+            Object.keys(data.slides).forEach((key) => {
+                const slide = data.slides[key];
                 this.updateSlide(slide);
             });
+
+            data.ratiosIndex = 7;
+            data.angle= 0;
         });
 
         //keyboard
-        if(keyboard && instance.root) {
+        if(keyboard && $root) {
             document.addEventListener("keydown", (e) => {
                 const keyCode = e.keyCode || e.which;
 
@@ -37,7 +46,7 @@ const stage = {
                 if (keyCode === 8 || keyCode === 27) {
                     e.preventDefault();
 
-                    instance.vm.$parent._close();
+                    data.vm.$parent._close();
 
                     return;
                 }
@@ -46,7 +55,7 @@ const stage = {
                 if (keyCode === 37 || keyCode === 38) {
                     e.preventDefault();
 
-                    instance.vm.$parent._previous();
+                    data.vm.$parent._previous();
 
                     return;
                 }
@@ -55,7 +64,7 @@ const stage = {
                 if (keyCode === 39 || keyCode === 40) {
                     e.preventDefault();
 
-                    instance.vm.$parent._next();
+                    data.vm.$parent._next();
 
                     return;
                 }
@@ -63,13 +72,13 @@ const stage = {
         }
 
         //wheel
-        if(wheel && instance.root) {
+        if(wheel && $root) {
             ["mousewheel", "DOMMouseScroll", "wheel", "MozMousePixelScroll"].forEach((item) => {
-                instance.root.addEventListener(item, (e) => {
+                $root.addEventListener(item, (e) => {
                     let currTime = new Date().getTime(),
                         pos = this.currentIndex;
 
-                    if (instance.group.length < 2) {
+                    if (data.group.length < 2) {
                         return;
                     }
                     e.preventDefault();
@@ -80,15 +89,21 @@ const stage = {
                     }
                     prevTime = currTime;
 
-                    instance.vm.$parent[(-e.deltaY || -e.deltaX || e.wheelDelta || -e.detail) < 0 ? "_next" : "_previous"]();
+                    data.vm.$parent[(-e.deltaY || -e.deltaX || e.wheelDelta || -e.detail) < 0 ? "_next" : "_previous"]();
                 });
             });
         }
+
+        //Guestures
+        data.Guestures = new Guestures(this);
     },
 
-    // 切换
+    // 切换图片
     swipe(pos) {
         var self = this.data;
+
+        self.ratiosIndex = 7;
+        self.angle = 0;
 
         // execute...
         const groupLen = self.group.length;
@@ -259,29 +274,46 @@ const stage = {
     resolveImageSlideSize(slide, imgWidth, imgHeight) {
         var self = this.data;
 
-        let maxWidth = parseInt(self.opts.width, 10),
-            maxHeight = parseInt(self.opts.height, 10);
+        let optWidth = parseInt(self.opts.width, 10),
+            optHeight = parseInt(self.opts.height, 10);
 
         // Sets the default values from the image
         slide.width = imgWidth;
         slide.height = imgHeight;
 
-        if (maxWidth > 0) {
-            slide.width = maxWidth;
-            slide.height = Math.floor((maxWidth * imgHeight) / imgWidth);
+        // Not done anything for the time being
+        // Priority Height
+        if (optWidth > 0) {
+            slide.width = optWidth;
+            slide.height = Math.floor((optWidth * imgHeight) / imgWidth);
         }
 
-        if (maxHeight > 0) {
-            slide.width = Math.floor((maxHeight * imgWidth) / imgHeight);
-            slide.height = maxHeight;
+        if (optHeight > 0) {
+            slide.width = Math.floor((optHeight * imgWidth) / imgHeight);
+            slide.height = optHeight;
         }
     },
 
     afterLoad(slide) {
+        var self = this.data;
+
         slide.isLoading = false;
         slide.isLoaded = true;
 
         this.hideLoading(slide);
+
+        // Disable right click
+        slide.$content.addEventListener("contextmenu", (e) => {
+            if (e.button === 2) {
+                e.preventDefault();
+            }
+            return true;
+        });
+
+        if (slide.pos === self.currentPos) {
+            // Update cursor style
+            self.root.classList.add("stage-can-swipe", "stage-can-pan");
+        }
 
         this.revealContent(slide);
     },
@@ -347,82 +379,90 @@ const stage = {
     },
 
     updateSlide(slide) {
-        var self = this.data;
-
-        let $content = slide.$content,
-            width = slide.width || self.opts.width,
-            height = slide.height || self.opts.height;
+        let width = slide.width,
+            height = slide.height;
 
         // TODO First, prevent caption overlap, if needed
         // ...
 
         // Then resize content to fit inside the slide
-        if ($content && (width || height)) {
-            this.setTranslate($content, this.getFitPos(slide));
+        if (slide.$content && (width || height)) {
+            // Important !!
+            this.setTranslate(slide.$content, this.getFitPos(slide));
         }
     },
 
     getFitPos(slide) {
         var self = this.data;
 
-        let $content = slide.$content,
-            width = slide.width || self.opts.width,
-            height = slide.height || self.opts.height,
-            maxWidth,
-            maxHeight,
+        let $root = self.root,
+            $content = slide.$content,
+            width = slide.width,
+            height = slide.height,
+            canvasWidth,
+            canvasHeight,
             minRatio,
-            aspectRatio,
             rez = {};
 
-        if (!slide.isLoaded || !$content) {
-            return false;
-        }
+        if (!slide.isLoaded || !$content) return false;
 
-        maxWidth = this.getTranslate(self.root).width;
-        maxHeight = this.getTranslate(self.root).height;
+        // Recalculate
+        $content.initialArea = {};
+
+
+        canvasWidth = this.getTranslate($root).width;
+        canvasHeight = this.getTranslate($root).height;
 
         if (!width || !height) {
-            width = maxWidth;
-            height = maxHeight;
+            width = canvasWidth;
+            height = canvasHeight;
         }
 
-        minRatio = Math.min(1, maxWidth / width, maxHeight / height);
+        minRatio = Math.min(1, canvasWidth / width, canvasHeight / height);
         width = minRatio * width;
         height = minRatio * height;
 
         // Adjust width/height to precisely fit into container
-        if (width > maxWidth - 0.5) {
-            width = maxWidth;
-        }
+        if (width > canvasWidth - 0.5) width = canvasWidth;
+        if (height > canvasHeight - 0.5) height = canvasHeight;
 
-        if (height > maxHeight - 0.5) {
-            height = maxHeight;
-        }
+        rez.top = $content.initialArea.top = Math.floor((canvasHeight - height) * 0.5);
+        rez.left = $content.initialArea.left = Math.floor((canvasWidth - width) * 0.5);
 
-        rez.top = Math.floor((maxHeight - height) * 0.5);
-        rez.left = Math.floor((maxWidth - width) * 0.5);
-
-        rez.width = width;
-        rez.height = height;
+        rez.width = $content.initialArea.width = width;
+        rez.height = $content.initialArea.height = height;
 
         return rez;
     },
 
+    getTranslate($el, isInvert) {
+        if (!$el) return false;
+
+        // 注意宽高的问题
+        const domRect = $el.getBoundingClientRect();
+        return {
+            top: domRect.top || 0,
+            left: domRect.left || 0,
+            width: isInvert ? domRect.height : domRect.width,
+            height: isInvert ? domRect.width : domRect.height,
+        };
+    },
+
     setTranslate($el, props) {
+        $el.style.transform = "";//reset transform
+
         let str = "";
 
-        if (!$el || !props) {
-            return;
-        }
+        if (!$el || !props) return;
 
-        if (props.left !== undefined || props.top !== undefined) {
-            str = `${props.left === undefined ? $el.position().left : props.left}px, ${props.top === undefined ? $el.position().top : props.top}px`;
+        if (props.translateX !== undefined || props.translateY !== undefined) {
+            str = `${props.translateX === undefined ? 0 : props.translateX}px, ${props.translateY === undefined ? 0 : props.translateY}px`;
             str = `translate(${str})`;
         }
         if (props.scaleX !== undefined && props.scaleY !== undefined) {
             str += `scale(${props.scaleX}, ${props.scaleY})`;
-        } else if (props.scaleX !== undefined) {
-            str += `scale(${props.scaleX})`;
+        } else if (props.scale !== undefined) {
+            str += `scale(${props.scale})`;
         }
         if (props.rotate !== undefined) {
             str += `rotate(${props.rotate}deg)`;
@@ -432,225 +472,155 @@ const stage = {
             $el.style.transform = str;
         }
 
+        if (props.height !== undefined) {
+            $el.style.height = `${props.height}px`;
+        }
         if (props.width !== undefined) {
             $el.style.width = `${props.width}px`;
         }
-
-        if (props.height !== undefined) {
-            $el.style.height = `${props.height}px`;
+        if (props.left !== undefined) {
+            $el.style.left = `${props.left}px`;
+        }
+        if (props.top !== undefined) {
+            $el.style.top = `${props.top}px`;
         }
 
         return $el;
     },
 
-    getTranslate($el) {
-        let domRect;
-        if (!$el) {
-            return false;
-        }
+    // 过渡
+    animate($el, to, callback) {
+        let $parent = $el.parentNode,
+            from = $el.initialArea,
+            currRect = this.getTranslate($el, $el.isInvert),
+            ratio,
+            angle,
+            pan,
+            transitionendFlag;
 
-        // 注意宽高的问题
-        domRect = $el.getBoundingClientRect();
-        return {
-            top: domRect.top || 0,
-            left: domRect.left || 0,
-            width: domRect.width,
-            height: domRect.height,
-        };
+        $parent.classList.remove("stage-slide--animating");
+
+        // Do you need to reset the width and height ?
+        transitionendFlag = true;
+        $el.addEventListener("transitionend", (e) => {
+            // 避免多次执行
+            if (e.target === e.currentTarget && transitionendFlag) {
+                transitionendFlag = false;
+                $el.isAnim = false;
+                $parent.classList.remove("stage-slide--animating");
+
+                if (to.scale !== undefined || to.rotate !== undefined || to.translateX !== undefined && to.translateY !== undefined) {
+                    if (to.scale !== undefined) {
+                        this.setTranslate($el, {
+                            top: from.top - (from.height * to.scale - from.height) * 0.5,
+                            left: from.left - (from.width * to.scale - from.width) * 0.5,
+                            width: from.width * to.scale,
+                            height: from.height * to.scale,
+                            rotate: angle,
+                        });
+                    }
+                    if (to.rotate !== undefined) {
+                        this.setTranslate($el, {
+                            rotate: angle % 360
+                        });
+                        $el.rotateAngel = angle % 360; // 保存
+                    }
+                }
+
+                callback && callback();
+            }
+        });
+
+        if (to.scale !== undefined || to.rotate !== undefined || to.translateX !== undefined && to.translateY !== undefined) {
+            angle = to.rotate === undefined ? $el.rotateAngel: to.rotate;
+
+            if (to.scale !== undefined) {
+                //compute by width
+                ratio = from.width * to.scale / currRect.width;
+            }
+
+            $parent.classList.add("stage-slide--animating");
+            $el.isAnim = true;
+
+            this.setTranslate($el, {
+                scale: ratio,
+                rotate: angle,
+            });
+        }
     },
 
-    // -----------------------------------------------------------------------------------------------------------------------------------------//
-    // Add Some Event Handler...
-    // onScale(ratio) {
-    //     var self = this.data;
-    //     this.stop();
-    //     // 缓存，记忆
-    //     self.ratio = ratio;
-    //
-    //     let current = self.current,
-    //         $slide = current.$slide,
-    //         $content = current.$content;
-    //
-    //     if(!current.isLoaded || !$content) {
-    //         return;
-    //     }
-    //     $slide.classList.add("slide-is--scaling");
-    //
-    //     this.setTransformMatrix($content);
-    // },
-    // onRotate(degree) {
-    //     var self = this.data;
-    //     this.stop();
-    //     // 缓存，记忆
-    //     self.degree = degree;
-    //
-    //     let current = self.current,
-    //         $slide = current.$slide,
-    //         $content = current.$content;
-    //
-    //     if(!current.isLoaded || !$content) {
-    //         return;
-    //     }
-    //
-    //     $slide.classList.add("slide-is--rotating");
-    //
-    //     this.setTransformMatrix($content);
-    // },
-    //
-    // setTransformMatrix($el) {
-    //     let self = this.data,
-    //         posX,
-    //         posY,
-    //         ratio = self.ratio || 1,
-    //         degree = self.degree || 0;
-    //
-    //     if (self.ratio !== 1 && !self.degree) {
-    //         self.isDrag = true;
-    //     }
-    //
-    //     // matrix(1, 0, 0, 1, x, y)
-    //     let matrix = document.defaultView.getComputedStyle($el, null).transform;
-    //     let result = matrix.replace(/[^0-9e.\-,]/g,'').split(',');
-    //
-    //     posX = result[4];
-    //     posY = result[5];
-    //
-    //     this.setTranslate($el, {
-    //         left: posX,
-    //         top: posY,
-    //         scaleX: ratio,
-    //         scaleY: ratio,
-    //         rotate: degree,
-    //     })
-    // },
-    //
-    // stop() {
-    //     var self = this.data;
-    //     if(self.current && self.current.$slide) {
-    //         self.current.$slide.classList.remove("slide-is--scaling", "slide-is--rotating")
-    //     }
-    // },
-};
+    // 缩放
+    _scaleTo(TYPE) {
+        let self = this.data,
+            $content = self.current.$content,
+            ratios = self.ratios,
+            ratiosIndex = self.ratiosIndex;
 
-//--------------------------------------------------------------------------------------------------------------------------//
-//TODO Guestures
-function Guestures() {}
+        if ($content.isAnim || !self.current.isComplete) return;
 
-Guestures.prototype.ontouchstart = (e) => {};
-Guestures.prototype.ontouchmove = (e) => {};
-Guestures.prototype.ontouchend = (e) => {};
+        if (TYPE === "IN" && ratiosIndex < ratios.length - 1) {
+            this.animate($content, {
+                scale: ratios[++ratiosIndex],
+            });
+            self.ratiosIndex++;
+        } else if (TYPE === "OUT" && ratiosIndex > 0) {
+            this.animate($content, {
+                scale: ratios[--ratiosIndex],
+            });
+            self.ratiosIndex--;
+        }
+    },
 
-Guestures.prototype.onSwipe = (e) => {};
-Guestures.prototype.endSwiping = (e) => {};
+    // 旋转
+    _whirlTo(TYPE) {
+        let self = this.data,
+            $content = self.current.$content,
+            angel;
 
-Guestures.prototype.onPan = (e) => {};
-Guestures.prototype.endPanning = (e) => {};
+        $content.isInvert = self.angle / 90 % 2 === 0;
 
-Guestures.prototype.onZoom = (e) => {};
-Guestures.prototype.endZooming = (e) => {};
+        if ($content.isAnim || !self.current.isComplete) return;
 
-Guestures.prototype.limitMovement = (e) => {};
-Guestures.prototype.limitPosition = (e) => {};
+        if (TYPE === "CCW") {
+            angel = self.angle = self.angle % 360 - 90;
+            this.animate($content, {
+                rotate: angel % 360 === 0 && angel !== 0 ? -360 : angel % 360
+            });
+        } else if (TYPE === "CW") {
+            angel = self.angle = self.angle % 360 + 90;
+            this.animate($content, {
+                rotate: angel % 360 === 0 && angel !== 0 ? +360 : angel % 360
+            });
+        }
+        //self.ratiosIndex = 7;
+    },
 
-//--------------------------------------------------------------------------------------------------------------------------//
-/**
- * TODO 将 HTML 字符串解析为对应的 DOM
- */
-function _parseHtml(htmlString) {
-    let tempDOM = document.createElement('DIV');
-    tempDOM.innerHTML = htmlString;
+    // Check if image dimensions exceed parent element
+    _canDragging(nextWidth, nextHeight) {
+        let self = this.data,
+            current = self.current,
+            pos = null,
+            rez = false;
 
-    return tempDOM.childNodes[0];
-}
+        if (current.isComplete || (nextWidth && nextHeight)) {
+            rez = current.$content && current.$content.initialArea;
 
-/**
- * TODO 扩展一个对象的属性或方法
- */
-function _extend() {
-    /**
-     * @variable target 被扩展的对象
-     * @variable length 参数的数量
-     * @variable deep   是否深度操作
-     */
-    var options, name, src, copy, copyIsArray, clone,
-        target = arguments[0] || {},
-        i = 1,
-        length = arguments.length,
-        deep = false;
+            if (nextWidth !== undefined && nextHeight !== undefined) {
+                pos = {
+                    width: nextWidth,
+                    height: nextHeight
+                };
+            } else if (current.isComplete) {
+                pos = this.getTranslate(current.$content);
+            }
 
-    // 根据参数选择采用浅复制 or 深复制
-    if (typeof target === "boolean") {
-        deep = target;
-        target = arguments[1] || {};
-
-        // 将 i 赋值为2，跳过前两个参数
-        i = 2;
-    }
-    if (length === i) {
-        --i;
-        return
-    }
-    // target 不是对象则把 target 设置为空对象。
-    if (typeof target !== "object") {
-        target = {};
-    }
-
-    // 开始遍历需要被扩展到 target 上的参数
-    for (; i < length; i++) {
-        if ((options = arguments[i]) != null) {
-            for (name in options) {
-                src = target[name];
-                copy = options[name];
-
-                if (target === copy) {
-                    continue;
-                }
-
-                // 当用户想要深度操作时，递归合并
-                if (deep && copy && (_isPlainObject(copy) || (copyIsArray = Array.isArray(copy)))) {
-                    // 如果是数组
-                    if (copyIsArray) {
-                        // 将 copyIsArray 重置为 false，为下次遍历做准备
-                        copyIsArray = false;
-                        clone = src && Array.isArray(src) ? src : [];
-                    } else {
-                        clone = src && _isPlainObject(src) ? src : {};
-                    }
-                    // 递归调用 extend 方法，继续进行深度遍历
-                    target[name] = _extend(deep, clone, copy);
-                } else if (copy !== undefined) {
-                    target[name] = copy;
-                }
+            if (pos && rez) {
+                rez = Math.abs(pos.width - rez.width) > 1.5 || Math.abs(pos.height - rez.height) > 1.5;
             }
         }
-    }
 
-    // 原对象被改变，因此如果不想改变原对象，target 可传入 {}
-    return target;
-}
-
-/**
- * TODO 通过字面量方式或者 new Object() 方式创建的对象，经检测将返回 true
- */
-function _isPlainObject(obj) {
-    if (typeof obj !== 'object' || obj === null) return false;
-
-    let proto = obj;
-    while (Object.getPrototypeOf(proto) !== null) {
-        proto = Object.getPrototypeOf(proto)
-    }
-
-    return Object.getPrototypeOf(obj) === proto;
-}
-
-/**
- * TODO 判断是否是一个空对象
- */
-function _isEmptyObject(obj) {
-    for (var key in obj) {
-        return false
-    }
-    return true
-}
+        return rez;
+    },
+};
 
 export default stage;

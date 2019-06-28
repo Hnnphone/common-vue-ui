@@ -17,6 +17,12 @@
              *   transitionEffect,
              *   transitionDuration,
              *   hash,
+             *   keyboard: true,
+             *   wheel: true,
+             *   touch: {
+             *      vertical: true,
+             *      momentum: true,
+             *   },
              * }
              */
             options: Object,
@@ -26,17 +32,17 @@
                 stage.init(this, this.currentIndex, this.$refs.playerStage, this.slides, this.options);
             },
 
-            // _scale(ratio) {
-            //     stage.onScale(ratio);
-            // },
-            //
-            // _rotate(degress) {
-            //     stage.onRotate(degress);
-            // }
+            scaleTo(TYPE) {
+                stage._scaleTo(TYPE);
+            },
+
+            whirlTo(TYPE) {
+                stage._whirlTo(TYPE);
+            },
         },
         watch: {
-            currentIndex(newValue) {
-                stage.swipe(newValue);
+            currentIndex() {
+                stage.swipe(this.currentIndex);
             }
         }
     }
@@ -46,15 +52,26 @@
     @import "../../mixins.styl"
 
     #Player-stage
-        full-screen(absolute)
+        position: absolute
+        top: 0
+        left: 0
+        right: 0
+        bottom: 0
 
     .stage-slide
         display: none
-        full-screen(absolute)
+        position: absolute
+        top: 0
+        left: 0
+        right: 0
+        bottom: 0
 
         .slide-content
-            display: inline-block;
-            text-align: center;
+            display: inline-block
+            text-align: center
+            position: relative
+            transition-property: transform
+            transform-origin: center
             user-select: none
 
             &.slide-is-hidden
@@ -75,6 +92,7 @@
                 top: 0
                 vertical-align: middle
                 user-select: none
+
 
         .loading
             display: none
@@ -106,11 +124,22 @@
         &.stage-slide--current
             display: block
 
-        &.slide-is--scaling
+        &.stage-slide--animating
             .slide-content
-                transition transform 366ms
+                transition-duration: 336ms
 
-        &.slide-is--rotating
-            .slide-content
-                transition transform 366ms
+    &.stage-is-grabbing
+        .slide-content
+            cursor: grabbing;
+
+    &.stage-can-swipe
+    &.stage-can-pan
+        .slide-content
+            cursor: grab;
+    &.stage-can-zoomOut
+        .slide-content
+            cursor: zoom-out;
+    &.stage-can-zoomIn
+        .slide-content
+            cursor: zoom-in;
 </style>
