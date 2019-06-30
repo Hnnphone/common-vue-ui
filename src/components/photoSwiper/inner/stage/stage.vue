@@ -93,7 +93,6 @@
                 vertical-align: middle
                 user-select: none
 
-
         .loading
             display: none
             opacity: 0
@@ -128,10 +127,6 @@
             .slide-content
                 transition-duration: 336ms
 
-    &.stage-is-grabbing
-        .slide-content
-            cursor: grabbing;
-
     &.stage-can-swipe
     &.stage-can-pan
         .slide-content
@@ -142,4 +137,8 @@
     &.stage-can-zoomIn
         .slide-content
             cursor: zoom-in;
+
+    &.stage-is-grabbing
+        .slide-content
+            cursor: grabbing;
 </style>

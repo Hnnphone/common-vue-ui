@@ -6,8 +6,8 @@ export const Guestures = function (instance) {
     this.init = (stage) => {
         var THIS = this;
 
-        this.instance = stage;
-        this.root = stage.data.root;
+        THIS.instance = stage;
+        THIS.root = stage.data.root;
 
         // add touchstart/mousedown event handler...
         ["mousedown"].forEach((item) => {
@@ -18,8 +18,11 @@ export const Guestures = function (instance) {
     this.ontouchstart = (e) => {
         var THIS = this,
             instance = THIS.instance,
+            root = THIS.root,
             data = instance.data,
-            current = data.current;
+            current = data.current,
+            $slide = current.$slide,
+            $content = current.$content;
 
         // 忽略右键点击
         if (e.button === 2) return;
@@ -33,17 +36,33 @@ export const Guestures = function (instance) {
 
         if (!THIS.startPoints.length) return;
 
-        THIS.$content = current.$content;
+        THIS.$content = $content;
+        THIS.opts = data.opts.touch;
 
         THIS.isPanning = false;
         THIS.isSwiping = false;
         THIS.canDrag = THIS.instance._canDragging();
 
-        //THIS.startTime = new Date().getTime();
+        THIS.startTime = new Date().getTime();
         THIS.distanceX = THIS.distanceY = THIS.distance = 0;
 
         THIS.canvasWidth = Math.round(THIS.root.clientWidth);
         THIS.canvasHeight = Math.round(THIS.root.clientHeight);
+
+        THIS.contentLastPos = null;
+        THIS.contentStartPos = THIS.instance.getTranslate($content) || {
+            top: 0,
+            left: 0
+        };
+
+        THIS.sliderStartPos = THIS.instance.getTranslate($slide);
+        THIS.stagePos = THIS.instance.getTranslate(root);
+
+        THIS.sliderStartPos.top -= THIS.stagePos.top;
+        THIS.sliderStartPos.left -= THIS.stagePos.left;
+
+        THIS.contentStartPos.top -= THIS.stagePos.top;
+        THIS.contentStartPos.left -= THIS.stagePos.left;
 
         // One finger or mouse click - swipe or pan an image
         if (THIS.startPoints.length === 1) {
@@ -92,11 +111,39 @@ export const Guestures = function (instance) {
     };
 
     this.ontouchend = (e) => {
-        var THIS = this;
+        var THIS = this,
+            swiping = THIS.isSwiping,
+            panning = THIS.isPanning;
+
+        THIS.endPoints = THIS.getPointerXY(e);
+        THIS.dMs = Math.max(new Date().getTime() - THIS.startTime, 1);
+
+        THIS.root.classList.remove("stage-is-grabbing");
+
+        if (THIS.requestId) {
+            window.cancelAnimationFrame(THIS.requestId);
+            THIS.requestId = null;
+        }
+
+        THIS.isSwiping = false;
+        THIS.isPanning = false;
+        THIS.instance.isDragging = false;
+
+        // Speed in px/ms
+        THIS.velocityX = (THIS.distanceX / THIS.dMs) * 0.5;
+        THIS.velocityY = (THIS.distanceY / THIS.dMs) * 0.5;
+
+        if (swiping) {
+            THIS.endSwiping();
+        } else if (panning) {
+            THIS.endPanning();
+        }
 
         ["mousemove", "mouseup", "mouseleave"].forEach((item) => {
             THIS[item].destroy();
         });
+
+        return;
     };
 
     this.onSwipe = () => {};
@@ -118,11 +165,33 @@ export const Guestures = function (instance) {
             window.cancelAnimationFrame(THIS.requestId);
         }
         THIS.requestId = requestAnimationFrame(() => {
-            THIS.setTranslate(THIS.$content, THIS.contentLastPos);
+            THIS.instance.setTranslate(THIS.$content, THIS.contentLastPos);
         });
     };
-    this.endPanning = () => {};
+    this.endPanning = () => {
+        var THIS = this,
+            newOffsetX,
+            newOffsetY,
+            newPos;
+        
+        if (!THIS.contentLastPos) return;
 
+        if (THIS.opts.momentum === false || THIS.dMs > 350) {
+            newOffsetX = THIS.contentLastPos.left;
+            newOffsetY = THIS.contentLastPos.top;
+        } else {
+            // Continue movement
+            newOffsetX = THIS.contentLastPos.left + THIS.velocityX * 500;
+            newOffsetY = THIS.contentLastPos.top + THIS.velocityY * 500;
+        }
+
+        newPos = THIS.limitPosition(newOffsetX, newOffsetY, THIS.contentStartPos.width, THIS.contentStartPos.height);
+
+        newPos.width = THIS.contentStartPos.width;
+        newPos.height = THIS.contentStartPos.height;
+
+        THIS.instance.animate(THIS.$content, newPos);
+    };
 
     this.init(instance);
 };
@@ -191,7 +260,7 @@ Guestures.prototype.limitMovement = function () {
 
     newOffsetY = currentOffsetY + distanceY;
 
-    // 按形成距离等比例减速
+    // Slow down proportionally to traveled distance
     minTranslateX = Math.max(0, canvasWidth * 0.5 - currentWidth * 0.5);
     minTranslateY = Math.max(0, canvasHeight * 0.5 - currentHeight * 0.5);
 
@@ -246,8 +315,8 @@ Guestures.prototype.limitPosition = function (newOffsetX, newOffsetY, newWidth, 
     }
 
     return {
-        top: newOffsetY,
-        left: newOffsetX
+        translateY: newOffsetY,
+        translateX: newOffsetX
     };
 };
 

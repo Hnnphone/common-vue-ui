@@ -182,7 +182,7 @@ export default {
             wheel: true, // 是否启用滚轮导航
 
             touch: {
-                vertical: true, // 允许垂直拖动内容
+                vertical: true, // 允许垂直拖动内容，并根据情况选择是否是关闭行为
                 momentum: true // 在拖动时释放鼠标或手指将继续移动
             }
         },

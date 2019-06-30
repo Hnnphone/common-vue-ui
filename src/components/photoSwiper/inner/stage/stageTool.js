@@ -105,6 +105,8 @@ const stage = {
         self.ratiosIndex = 7;
         self.angle = 0;
 
+        if (self.isDragging) return;
+
         // execute...
         const groupLen = self.group.length;
         let current,
@@ -409,7 +411,6 @@ const stage = {
         // Recalculate
         $content.initialArea = {};
 
-
         canvasWidth = this.getTranslate($root).width;
         canvasHeight = this.getTranslate($root).height;
 
@@ -534,6 +535,11 @@ const stage = {
         if (to.scale !== undefined || to.rotate !== undefined || to.translateX !== undefined && to.translateY !== undefined) {
             angle = to.rotate === undefined ? $el.rotateAngel: to.rotate;
 
+            pan = {
+                X: to.translateX,
+                Y: to.translateY,
+            };
+
             if (to.scale !== undefined) {
                 //compute by width
                 ratio = from.width * to.scale / currRect.width;
@@ -545,6 +551,8 @@ const stage = {
             this.setTranslate($el, {
                 scale: ratio,
                 rotate: angle,
+                left: pan.X,
+                top: pan.Y
             });
         }
     },
@@ -615,7 +623,7 @@ const stage = {
             }
 
             if (pos && rez) {
-                rez = Math.abs(pos.width - rez.width) > 1.5 || Math.abs(pos.height - rez.height) > 1.5;
+                rez = pos.width - rez.width > 1.5 || pos.height - rez.height > 1.5;
             }
         }
 
