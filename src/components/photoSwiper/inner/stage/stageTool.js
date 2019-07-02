@@ -389,6 +389,10 @@ const stage = {
 
         // Then resize content to fit inside the slide
         if (slide.$content && (width || height)) {
+            // reset
+            slide.$content.isInvert = false;
+            slide.$content.rotateAngel = 0;
+
             // Important !!
             this.setTranslate(slide.$content, this.getFitPos(slide));
         }
@@ -427,8 +431,8 @@ const stage = {
         if (width > canvasWidth - 0.5) width = canvasWidth;
         if (height > canvasHeight - 0.5) height = canvasHeight;
 
-        rez.top = $content.initialArea.top = Math.floor((canvasHeight - height) * 0.5);
-        rez.left = $content.initialArea.left = Math.floor((canvasWidth - width) * 0.5);
+        rez.top = Math.floor((canvasHeight - height) * 0.5);
+        rez.left = Math.floor((canvasWidth - width) * 0.5);
 
         rez.width = $content.initialArea.width = width;
         rez.height = $content.initialArea.height = height;
@@ -491,7 +495,10 @@ const stage = {
 
     // 过渡
     animate($el, to, callback) {
+
         let $parent = $el.parentNode,
+            canvasWidth = this.getTranslate($parent).width,
+            canvasHeight = this.getTranslate($parent).height,
             from = $el.initialArea,
             currRect = this.getTranslate($el, $el.isInvert),
             ratio,
@@ -513,8 +520,8 @@ const stage = {
                 if (to.scale !== undefined || to.rotate !== undefined || to.translateX !== undefined && to.translateY !== undefined) {
                     if (to.scale !== undefined) {
                         this.setTranslate($el, {
-                            top: from.top - (from.height * to.scale - from.height) * 0.5,
-                            left: from.left - (from.width * to.scale - from.width) * 0.5,
+                            top: canvasHeight * 0.5 - from.height * to.scale * 0.5,
+                            left: canvasWidth * 0.5 - from.width * to.scale * 0.5,
                             width: from.width * to.scale,
                             height: from.height * to.scale,
                             rotate: angle,
@@ -611,7 +618,7 @@ const stage = {
             rez = false;
 
         if (current.isComplete || (nextWidth && nextHeight)) {
-            rez = current.$content && current.$content.initialArea;
+            rez = this.getTranslate(self.root);
 
             if (nextWidth !== undefined && nextHeight !== undefined) {
                 pos = {

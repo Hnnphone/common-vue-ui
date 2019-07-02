@@ -118,7 +118,7 @@
         height: 80px
         full-screen(absolute, 2899)
         top: auto
-        //bottom: -80px
+        bottom: -80px
         background-color: #313131
         transition: bottom .8s cubic-bezier(0.68, -0.55, 0.265, 1.55)
 

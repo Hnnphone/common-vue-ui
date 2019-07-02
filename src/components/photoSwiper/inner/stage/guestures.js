@@ -55,6 +55,11 @@ export const Guestures = function (instance) {
             left: 0
         };
 
+        if ($content.isInvert) {
+            THIS.realLeft = parseFloat(THIS.$content.style.left);
+            THIS.realTop = parseFloat(THIS.$content.style.top);
+        }
+
         THIS.sliderStartPos = THIS.instance.getTranslate($slide);
         THIS.stagePos = THIS.instance.getTranslate(root);
 
@@ -103,7 +108,7 @@ export const Guestures = function (instance) {
         // Skip false ontouchmove events (Chrome)
         if (THIS.distance > 0) {
             if (THIS.isSwiping) {
-                THIS.onSwipe();
+                //THIS.onSwipe();
             } else if (THIS.isPanning) {
                 THIS.onPan();
             }
@@ -146,7 +151,113 @@ export const Guestures = function (instance) {
         return;
     };
 
-    this.onSwipe = () => {};
+    this.onSwipe = () => {
+        var THIS = this,
+            data = THIS.instance.data,
+            swiping = THIS.isSwiping,
+            left = self.sliderStartPos.left || 0,
+            angle;
+
+        // If direction is not yet determined
+        if (swiping === true) {
+            // We need at least 10px distance to correctly calculate an angle
+            if (Math.abs(self.distance) > 10) {
+                if (data.group.length < 2 && THIS.opts.vertical) {
+                    THIS.isSwiping = "y";
+                } else if (instance.isDragging || self.opts.vertical === false || (self.opts.vertical === "auto" && $(window).width() > 800)) {
+                    THIS.isSwiping = "x";
+                } else {
+                    angle = Math.abs((Math.atan2(self.distanceY, self.distanceX) * 180) / Math.PI);
+
+                    THIS.isSwiping = angle > 45 && angle < 135 ? "y" : "x";
+                }
+
+                if (THIS.isSwiping === "y") {
+                    return;
+                }
+
+                instance.isDragging = THIS.isSwiping;
+
+                // Reset points to avoid jumping, because we dropped first swipes to calculate the angle
+                THIS.startPoints = THIS.newPoints;
+
+                $.each(instance.slides, function (index, slide) {
+                    var slidePos, stagePos;
+
+                    $.fancybox.stop(slide.$slide);
+
+                    slidePos = $.fancybox.getTranslate(slide.$slide);
+                    stagePos = $.fancybox.getTranslate(instance.$refs.stage);
+
+                    slide.$slide
+                        .css({
+                            transform: "",
+                            opacity: "",
+                            "transition-duration": ""
+                        })
+                        .removeClass("fancybox-animated")
+                        .removeClass(function (index, className) {
+                            return (className.match(/(^|\s)fancybox-fx-\S+/g) || []).join(" ");
+                        });
+
+                    if (slide.pos === instance.current.pos) {
+                        self.sliderStartPos.top = slidePos.top - stagePos.top;
+                        self.sliderStartPos.left = slidePos.left - stagePos.left;
+                    }
+
+                    $.fancybox.setTranslate(slide.$slide, {
+                        top: slidePos.top - stagePos.top,
+                        left: slidePos.left - stagePos.left
+                    });
+                });
+            }
+            return;
+        }
+
+        // Sticky edges
+        if (swiping === "x") {
+            if (
+                self.distanceX > 0 &&
+                (self.instance.group.length < 2 || (self.instance.current.index === 0 && !self.instance.current.opts.loop))
+            ) {
+                left = left + Math.pow(self.distanceX, 0.8);
+            } else if (
+                self.distanceX < 0 &&
+                (self.instance.group.length < 2 ||
+                    (self.instance.current.index === self.instance.group.length - 1 && !self.instance.current.opts.loop))
+            ) {
+                left = left - Math.pow(-self.distanceX, 0.8);
+            } else {
+                left = left + self.distanceX;
+            }
+        }
+
+        THIS.sliderLastPos = {
+            top: swiping === "x" ? 0 : THIS.sliderStartPos.top + THIS.distanceY,
+            left: left
+        };
+
+        if (THIS.requestId) {
+            window.cancelAnimationFrame(THIS.requestId);
+
+            THIS.requestId = null;
+        }
+
+        self.requestId = window.requestAnimationFrame(() => {
+            if (self.sliderLastPos) {
+                $.each(self.instance.slides, function (index, slide) {
+                    var pos = slide.pos - self.instance.currPos;
+
+                    $.fancybox.setTranslate(slide.$slide, {
+                        top: self.sliderLastPos.top,
+                        left: self.sliderLastPos.left + pos * self.canvasWidth + pos * slide.opts.gutter
+                    });
+                });
+
+                self.$container.addClass("fancybox-is-sliding");
+            }
+        });
+    };
     this.endSwiping = () => {};
 
     this.onPan = () => {
@@ -165,7 +276,11 @@ export const Guestures = function (instance) {
             window.cancelAnimationFrame(THIS.requestId);
         }
         THIS.requestId = requestAnimationFrame(() => {
-            THIS.instance.setTranslate(THIS.$content, THIS.contentLastPos);
+            THIS.instance.setTranslate(THIS.$content, {
+                top: THIS.contentLastPos.top,
+                left: THIS.contentLastPos.left,
+                rotate: THIS.$content.rotateAngel
+            });
         });
     };
     this.endPanning = () => {
@@ -234,7 +349,8 @@ Guestures.prototype.getDistance = function (point2, point1, what) {
 
 // 拖拽边界的处理
 Guestures.prototype.limitMovement = function () {
-    var THIS = this;
+    var THIS = this,
+        isInvert = THIS.$content.isInvert;
 
     var canvasWidth = THIS.canvasWidth;
     var canvasHeight = THIS.canvasHeight;
@@ -252,14 +368,6 @@ Guestures.prototype.limitMovement = function () {
 
     var minTranslateX, minTranslateY, maxTranslateX, maxTranslateY, newOffsetX, newOffsetY;
 
-    if (currentWidth > canvasWidth) {
-        newOffsetX = currentOffsetX + distanceX;
-    } else {
-        newOffsetX = currentOffsetX;
-    }
-
-    newOffsetY = currentOffsetY + distanceY;
-
     // Slow down proportionally to traveled distance
     minTranslateX = Math.max(0, canvasWidth * 0.5 - currentWidth * 0.5);
     minTranslateY = Math.max(0, canvasHeight * 0.5 - currentHeight * 0.5);
@@ -267,23 +375,47 @@ Guestures.prototype.limitMovement = function () {
     maxTranslateX = Math.min(canvasWidth - currentWidth, canvasWidth * 0.5 - currentWidth * 0.5);
     maxTranslateY = Math.min(canvasHeight - currentHeight, canvasHeight * 0.5 - currentHeight * 0.5);
 
+    // 反转状态下
+    if (isInvert) {
+        var realLeft = THIS.realLeft;
+        var realTop = THIS.realTop;
+
+        THIS.minX = minTranslateX = -currentOffsetX + realLeft;
+        THIS.minY = minTranslateY = -currentOffsetY + realTop;
+
+        THIS.maxX = maxTranslateX = currentOffsetX + realLeft;
+        THIS.maxY = maxTranslateY = currentOffsetY + realTop;
+
+        currentOffsetX = realLeft;
+        currentOffsetY = realTop;
+    }
+
+    if (currentWidth > canvasWidth) {
+        newOffsetX = currentOffsetX + distanceX;
+    } else {
+        distanceX = 0;
+        newOffsetX = currentOffsetX;
+    }
+
+    newOffsetY = currentOffsetY + distanceY;
+
     //  👉
-    if (distanceX > 0 && newOffsetX > minTranslateX) {
+    if (distanceX > 0 && newOffsetX > minTranslateX + 0.5) {
         newOffsetX = minTranslateX - 1 + Math.pow(-minTranslateX + currentOffsetX + distanceX, 0.8) || 0;
     }
 
     //  👈
-    if (distanceX < 0 && newOffsetX < maxTranslateX) {
+    if (distanceX < 0 && newOffsetX < maxTranslateX - 0.5) {
         newOffsetX = maxTranslateX + 1 - Math.pow(maxTranslateX - currentOffsetX - distanceX, 0.8) || 0;
     }
 
     //  👇
-    if (distanceY > 0 && newOffsetY > minTranslateY) {
+    if (distanceY > 0 && newOffsetY > minTranslateY + 0.5) {
         newOffsetY = minTranslateY - 1 + Math.pow(-minTranslateY + currentOffsetY + distanceY, 0.8) || 0;
     }
 
     //  👆
-    if (distanceY < 0 && newOffsetY < maxTranslateY) {
+    if (distanceY < 0 && newOffsetY < maxTranslateY - 0.5) {
         newOffsetY = maxTranslateY + 1 - Math.pow(maxTranslateY - currentOffsetY - distanceY, 0.8) || 0;
     }
 
@@ -293,22 +425,44 @@ Guestures.prototype.limitMovement = function () {
     };
 };
 Guestures.prototype.limitPosition = function (newOffsetX, newOffsetY, newWidth, newHeight) {
-    var THIS = this;
+    var THIS = this,
+        isInvert = THIS.$content.isInvert;
 
     var canvasWidth = THIS.canvasWidth;
     var canvasHeight = THIS.canvasHeight;
 
-    if (newWidth > canvasWidth) {
+    var minX = THIS.minX,
+        minY = THIS.minY,
+        maxX = THIS.maxX,
+        maxY = THIS.maxY;
+
+    if (newWidth > canvasWidth && !isInvert) {
         newOffsetX = newOffsetX > 0 ? 0 : newOffsetX;
         newOffsetX = newOffsetX < canvasWidth - newWidth ? canvasWidth - newWidth : newOffsetX;
+    } else if (isInvert) {
+        // 反转状态
+        newOffsetX = newOffsetX > minX ? minX : newOffsetX;
+        newOffsetX = newOffsetX < maxX ? maxX : newOffsetX;
+
+        if (newWidth <= canvasWidth) {
+            newOffsetX = THIS.realLeft;
+        }
     } else {
         // 水平居中
         newOffsetX = Math.max(0, canvasWidth / 2 - newWidth / 2);
     }
 
-    if (newHeight > canvasHeight) {
+    if (newHeight > canvasHeight && !isInvert) {
         newOffsetY = newOffsetY > 0 ? 0 : newOffsetY;
         newOffsetY = newOffsetY < canvasHeight - newHeight ? canvasHeight - newHeight : newOffsetY;
+    } else if (isInvert) {
+        // 反转状态
+        newOffsetY = newOffsetY > minY ? minY : newOffsetY;
+        newOffsetY = newOffsetY < maxY ? maxY : newOffsetY;
+
+        if (newHeight <= canvasHeight) {
+            newOffsetY = THIS.realTop;
+        }
     } else {
         // 垂直居中
         newOffsetY = Math.max(0, canvasHeight / 2 - newHeight / 2);
